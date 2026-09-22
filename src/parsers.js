@@ -70,13 +70,20 @@ export function extractTable(rows = [], headerTest) {
       return seen[key] > 1 ? { ...c, label: `${c.label} ${seen[key]}` } : c;
     });
   const headerKey = cols.map((c) => norm(c.label)).join("|");
+  const headerVals = cols.map((c) => norm(rows[h][c.i]));
+  const headerOverlapMin = Math.max(3, cols.length - 2);
   const out = [];
   let group = "";
 
   for (const row of rows.slice(h + 1)) {
     const n = filled(row);
     if (n === 0 || isNote(row)) continue;
-    if (cols.map((c) => norm(row[c.i])).join("|") === headerKey) continue;
+    const rowVals = cols.map((c) => norm(row[c.i]));
+    if (rowVals.join("|") === headerKey) continue;
+    // Planilhas com seções (ex.: turno/returno) às vezes repetem o cabeçalho com 1-2 nomes de
+    // coluna trocados (ex.: "Mandante"/"Visitante" -> "Jogador 1"/"Jogador 2"). Isso não é um
+    // resultado de partida, então a linha é descartada em vez de virar uma linha de dados fantasma.
+    if (rowVals.filter((v, i) => v && v === headerVals[i]).length >= headerOverlapMin) continue;
     if (n === 1 && GROUP_RE.test(firstFilled(row))) {
       group = firstFilled(row);
       continue;
@@ -184,6 +191,7 @@ export function parseGames(sheets) {
       const st = status ? r[status] : "";
       return {
         leg,
+        roundNum,
         wo: /w\.?\s?o\b|administrativ|irregular/i.test(st),
         homeClub: homeClub && homeClub !== awayClub ? r[homeClub] : "",
         awayClub: awayClub && homeClub !== awayClub ? r[awayClub] : "",

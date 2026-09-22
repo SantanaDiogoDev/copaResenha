@@ -26,6 +26,12 @@ npm run dev                  # abre em http://localhost:8888
 
 Use `npm run dev` (Netlify CLI), não `npx vite` sozinho: só assim a função `/api/planilha` roda junto e a planilha real é carregada. Rodando só com `vite`, a aba fica presa em "Carregando a planilha…" porque `/api/planilha` não existe.
 
+**Se já existir uma pasta `dist/`** (de um `npm run build` anterior), apague-a antes de rodar `npm run dev`. Com o `dist/` presente, o `netlify dev` passa a tratar todo pedido de arquivo (`/src/main.jsx`, `/src/App.jsx` etc.) como "não existe" e devolve o `index.html` no lugar — a página fica em branco e o console mostra erro de MIME type em módulos JS. Sintoma: tela branca com `Failed to load module script`. Solução: `rm -rf dist` (ou apagar a pasta) e subir o `npm run dev` de novo.
+
+```bash
+rm -rf dist   # se existir, antes de "npm run dev"
+```
+
 O projeto também tem um `.claude/launch.json` configurado para abrir automaticamente no Claude Code com o botão de preview.
 
 ## Como testar
@@ -33,6 +39,7 @@ O projeto também tem um `.claude/launch.json` configurado para abrir automatica
 1. Suba com `npm run dev` e abra `http://localhost:8888`.
 2. Confira o console do navegador: não deve ter nenhum erro (F12 → Console).
 3. Passe por todas as abas — Classificação, Jogos, Participantes, Clubes e Regras — e confira que os dados batem com a planilha oficial.
+   - Em Jogos, teste o seletor de rodada e os botões Anterior/Próxima; confira que não aparece nenhuma partida "Jogador 1 x Jogador 2".
 4. Clique em "Atualizar agora" no topo e confirme que a hora "Atualizado às…" muda.
 5. Na aba Regras, teste a calculadora de queda de conexão (seção "Desconexões") com o exemplo padrão (63:40, 2×1) — o resultado oficial deve dar 3×2, igual ao exemplo do regulamento.
 6. Rode o build de produção antes de publicar, para garantir que não há erro de compilação:
@@ -46,6 +53,8 @@ O projeto também tem um `.claude/launch.json` configurado para abrir automatica
 
 - **Bug no "clube" do participante** (Classificação e cabeçalho): o código tentava montar um índice `participante → clube`, mas como cada jogador usa 9 clubes diferentes (um por adversário, sem um clube fixo), a planilha real não tem essa coluna — e a busca por nome acabava batendo por engano na coluna "Clubes preenchidos" da aba Participantes, mostrando "9" no lugar de um nome de clube. Essa lógica (`buildClubIndex`) foi removida; o clube de cada jogador continua aparecendo corretamente por partida na aba Jogos.
 - **Linhas fantasmas em Participantes**: a planilha tem slots de template vazios ("Jogador 11" a "Jogador 20") que apareciam como linhas em branco na tabela. O parser genérico agora ignora linhas com apenas uma célula preenchida.
+- **Partida fantasma "Jogador 1 x Jogador 2" em Jogos**: a aba Jogos tem duas seções (1º turno e 2º turno/returno), cada uma com sua própria linha de cabeçalho. A segunda linha de cabeçalho renomeia "Mandante/Visitante" para "Jogador 1/Jogador 2", e o parser não reconhecia essa segunda linha como cabeçalho — tratava como se fosse uma partida de verdade. Agora `extractTable` detecta e descarta linhas que repetem a maior parte de um cabeçalho já visto (`src/parsers.js`).
+- **Jogos paginados por rodada**: a aba Jogos agora mostra uma rodada por vez ("Rodada 1 · Turno", "Rodada 2 · Turno", …, "Rodada 1 · Returno", …), em ordem cronológica, com botões Anterior/Próxima e um seletor para pular direto para qualquer rodada. Ao abrir a aba, já pula para a primeira rodada com jogo pendente.
 - Adicionado `.claude/launch.json` para rodar o preview local direto pelo Claude Code.
 
 ## Publicar no Netlify

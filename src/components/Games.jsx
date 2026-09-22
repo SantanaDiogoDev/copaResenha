@@ -1,16 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
+import { REG } from "../regulamento.js";
 import DataTable from "./DataTable.jsx";
 import Empty from "./Empty.jsx";
-
-function groupByRound(list) {
-  const map = new Map();
-  list.forEach((g) => {
-    const legLabel = g.leg && !g.round.toLowerCase().includes(g.leg.toLowerCase()) ? g.leg.toLowerCase() : "";
-    const key = [g.round, legLabel].filter(Boolean).join(", ");
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(g);
-  });
-  return [...map.entries()];
-}
 
 function Side({ name, club, won, className }) {
   return (
@@ -47,48 +38,94 @@ export function Match({ m }) {
   );
 }
 
-function MatchList({ list }) {
-  return groupByRound(list).map(([round, games]) => (
-    <div className="round" key={round || "sem-rodada"}>
-      {round && <h4 className="round-title">{round}</h4>}
-      <ul className="matches">
-        {games.map((m, i) => (
-          <Match key={`${m.home}-${m.away}-${i}`} m={m} />
-        ))}
-      </ul>
-    </div>
-  ));
+// Agrupa por rodada dentro do turno/returno (a numeração da planilha segue direto de 1 a 18;
+// aqui volta a contar de 1 no returno, que é como o regulamento chama as rodadas)
+function pageKey(g) {
+  return g.roundNum ? `${g.leg || ""}#${g.roundNum}` : g.round || "sem-rodada";
 }
 
-export default function Games({ games, onOpenRules }) {
-  if (!games) return <Empty title="Aba de jogos não encontrada" text="A planilha precisa de uma aba com “Jogos” no nome." />;
-  if (games.generic) return <DataTable title="Jogos" table={games.generic} missing="Jogos" />;
+function pageLabel(g) {
+  if (g.roundNum) {
+    const inLeg = g.roundNum > REG.jogosPorTurno ? g.roundNum - REG.jogosPorTurno : g.roundNum;
+    return g.leg ? `Rodada ${inLeg} · ${g.leg}` : `Rodada ${inLeg}`;
+  }
+  return g.round || "Jogos";
+}
 
-  const upcoming = games.list.filter((g) => !g.played);
-  const results = games.list.filter((g) => g.played).reverse();
+function buildPages(list) {
+  const map = new Map();
+  for (const g of list) {
+    const key = pageKey(g);
+    if (!map.has(key)) map.set(key, { key, label: pageLabel(g), games: [] });
+    map.get(key).games.push(g);
+  }
+  return [...map.values()];
+}
+
+function RoundPager({ list, onOpenRules }) {
+  const pages = useMemo(() => buildPages(list), [list]);
+  const [page, setPage] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  // Na primeira carga, pula direto para a rodada em andamento (a 1ª com jogo pendente)
+  useEffect(() => {
+    if (ready || !pages.length) return;
+    const i = pages.findIndex((p) => p.games.some((g) => !g.played));
+    setPage(i >= 0 ? i : pages.length - 1);
+    setReady(true);
+  }, [pages, ready]);
+
+  if (!pages.length) return <p className="muted">Nenhum jogo cadastrado ainda.</p>;
+
+  const index = Math.min(page, pages.length - 1);
+  const current = pages[index];
+  const goto = (i) => setPage(Math.max(0, Math.min(pages.length - 1, i)));
 
   return (
-    <section>
-      <h2 className="section-title">Jogos</h2>
+    <>
       <p className="muted small intro">
         Cada participante enfrenta todos os outros duas vezes. No returno o jogo é espelhado: os clubes usados na ida
         são trocados entre os dois jogadores.{" "}
         <button className="link" onClick={() => onOpenRules("espelhado")}>Entenda o jogo espelhado</button>
       </p>
 
-      <h3 className="sub-title">Próximos jogos</h3>
-      {upcoming.length ? (
-        <MatchList list={upcoming} />
-      ) : (
-        <p className="muted">Todos os jogos cadastrados já foram disputados.</p>
-      )}
+      <div className="pager">
+        <button className="refresh" onClick={() => goto(index - 1)} disabled={index === 0} aria-label="Rodada anterior">
+          ‹ Anterior
+        </button>
+        <select
+          className="pager-select"
+          value={current.key}
+          onChange={(e) => goto(pages.findIndex((p) => p.key === e.target.value))}
+          aria-label="Ir para rodada"
+        >
+          {pages.map((p) => (
+            <option key={p.key} value={p.key}>{p.label}</option>
+          ))}
+        </select>
+        <button className="refresh" onClick={() => goto(index + 1)} disabled={index === pages.length - 1} aria-label="Próxima rodada">
+          Próxima ›
+        </button>
+      </div>
 
-      <h3 className="sub-title">Resultados</h3>
-      {results.length ? (
-        <MatchList list={results} />
-      ) : (
-        <p className="muted">Nenhum resultado lançado ainda.</p>
-      )}
+      <h3 className="round-title pager-title">{current.label}</h3>
+      <ul className="matches">
+        {current.games.map((m, i) => (
+          <Match key={`${m.home}-${m.away}-${i}`} m={m} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+export default function Games({ games, onOpenRules }) {
+  if (!games) return <Empty title="Aba de jogos não encontrada" text="A planilha precisa de uma aba com “Jogos” no nome." />;
+  if (games.generic) return <DataTable title="Jogos" table={games.generic} missing="Jogos" />;
+
+  return (
+    <section>
+      <h2 className="section-title">Jogos</h2>
+      <RoundPager list={games.list} onOpenRules={onOpenRules} />
     </section>
   );
 }
