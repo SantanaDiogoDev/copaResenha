@@ -49,6 +49,12 @@ button { font: inherit; color: inherit; }
   align-items: center; justify-content: space-between;
 }
 
+.brand { display: flex; align-items: center; gap: 0.85rem; }
+.logo {
+  /* fundo transparente: sem caixa por trás, só o escudo */
+  width: 14rem; height: 14rem; flex-shrink: 0; object-fit: contain;
+}
+
 .title {
   font-family: var(--display); font-weight: 700;
   font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1; letter-spacing: 0.01em;
@@ -142,6 +148,7 @@ tbody th { font-weight: 500; }
   .opt { display: none; }
   th, td { padding: 0.55rem 0.35rem; }
   .standings .player { min-width: 8rem; }
+  .logo { width: 5.5rem; height: 5.5rem; }
 }
 
 /* ---------- Legenda ---------- */

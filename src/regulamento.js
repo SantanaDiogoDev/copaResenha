@@ -1,4 +1,4 @@
-// Números oficiais do regulamento da Copa da Resenha (1ª edição)
+// Números oficiais do regulamento da Liga Soriano (1ª edição)
 export const REG = {
   participantes: 10,
   jogosPorParticipante: 18,

@@ -1,4 +1,4 @@
-# Copa da Resenha
+# Liga Soriano
 
 Site em React que lê a planilha do campeonato no Google Drive e mostra classificação, jogos, participantes, clubes e as regras oficiais, atualizando sozinho a cada 30 segundos.
 
@@ -56,6 +56,7 @@ O projeto também tem um `.claude/launch.json` configurado para abrir automatica
 - **Partida fantasma "Jogador 1 x Jogador 2" em Jogos**: a aba Jogos tem duas seções (1º turno e 2º turno/returno), cada uma com sua própria linha de cabeçalho. A segunda linha de cabeçalho renomeia "Mandante/Visitante" para "Jogador 1/Jogador 2", e o parser não reconhecia essa segunda linha como cabeçalho — tratava como se fosse uma partida de verdade. Agora `extractTable` detecta e descarta linhas que repetem a maior parte de um cabeçalho já visto (`src/parsers.js`).
 - **Jogos paginados por rodada**: a aba Jogos agora mostra uma rodada por vez ("Rodada 1 · Turno", "Rodada 2 · Turno", …, "Rodada 1 · Returno", …), em ordem cronológica, com botões Anterior/Próxima e um seletor para pular direto para qualquer rodada. Ao abrir a aba, já pula para a primeira rodada com jogo pendente.
 - Adicionado `.claude/launch.json` para rodar o preview local direto pelo Claude Code.
+- **Rebranding para "Liga Soriano"**: o nome exibido no site ("Copa da Resenha") não batia com o nome oficial usado no regulamento e na planilha ("Liga Soriano"). Título, cabeçalho, rodapé e aba Regras foram atualizados. O escudo oficial está em `public/logo.png` (cabeçalho) e `public/favicon.png` (aba do navegador).
 
 ## Publicar no Netlify
 

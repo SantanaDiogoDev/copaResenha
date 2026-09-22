@@ -13,7 +13,10 @@ export default function Scoreboard({ leader, standings, games, updatedAt, loadin
   return (
     <header className="scoreboard">
       <div className="board-top">
-        <h1 className="title">Copa da Resenha</h1>
+        <div className="brand">
+          <img className="logo" src="/logo.png" alt="Escudo da Liga Soriano" width="224" height="224" />
+          <h1 className="title">Liga Soriano</h1>
+        </div>
         <div className="live">
           <span className={`dot ${hasError ? "dot-off" : ""}`} aria-hidden="true" />
           <span>

@@ -91,7 +91,7 @@ export default function Rules({ target }) {
 
   return (
     <section className="rules">
-      <h2 className="section-title">Regras da Copa da Resenha</h2>
+      <h2 className="section-title">Regras da Liga Soriano</h2>
       <p className="lead">
         Resumo do regulamento oficial da 1ª edição. O campeonato é competitivo, mas a proposta continua sendo jogar
         entre amigos com regras claras e justas.

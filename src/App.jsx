@@ -91,7 +91,7 @@ export default function App() {
 
       <footer className="footer">
         <p className="motto">Amigos, resenha e diversão</p>
-        Dados lidos da planilha oficial da Copa da Resenha. A página se atualiza sozinha a cada {REFRESH_MS / 1000} segundos.
+        Dados lidos da planilha oficial da Liga Soriano. A página se atualiza sozinha a cada {REFRESH_MS / 1000} segundos.
       </footer>
     </div>
   );
