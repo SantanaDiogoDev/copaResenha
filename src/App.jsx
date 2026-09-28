@@ -81,7 +81,7 @@ export default function App() {
         {tab !== "regras" && !data && loading && <p className="muted">Carregando a planilha…</p>}
         {tab !== "regras" && !data && !loading && <Empty title="Sem dados ainda" text="Assim que a planilha responder, o campeonato aparece aqui." />}
 
-        {data && tab === "classificacao" && <Standings standings={data.standings} onOpenRules={openRules} />}
+        {data && tab === "classificacao" && <Standings standings={data.standings} games={data.games} onOpenRules={openRules} />}
         {data && tab === "jogos" && <Games games={data.games} onOpenRules={openRules} />}
         {data && tab === "participantes" && (
           <DataTable title="Participantes" table={data.participants} missing="Participantes" />

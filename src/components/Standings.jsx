@@ -1,6 +1,8 @@
+import { Fragment, useState } from "react";
 import { signed } from "../parsers.js";
 import { REG, CRITERIOS_DESEMPATE } from "../regulamento.js";
 import Empty from "./Empty.jsx";
+import PlayerDetail from "./PlayerDetail.jsx";
 
 const LEGEND = [
   ["Pts", "Pontos: vitória vale 3, empate vale 1 e derrota não pontua."],
@@ -11,7 +13,11 @@ const LEGEND = [
   ["%", "Aproveitamento: pontos conquistados sobre os pontos possíveis."],
 ];
 
-export default function Standings({ standings, onOpenRules }) {
+const COLS = 10;
+
+export default function Standings({ standings, games, onOpenRules }) {
+  // Só um participante aberto por vez: abrir outro recolhe o anterior
+  const [open, setOpen] = useState(null);
   if (!standings) return <Empty title="Aba de classificação não encontrada" text="A planilha precisa de uma aba com “Classificação” no nome." />;
   if (!standings.rows.length) return <Empty title="Classificação vazia" text="Cadastre os participantes na planilha para montar a tabela." />;
 
@@ -20,6 +26,7 @@ export default function Standings({ standings, onOpenRules }) {
   return (
     <section>
       <h2 className="section-title">Classificação</h2>
+      <p className="muted small intro">Toque em um participante para ver os jogos e os números dele.</p>
 
       <div className="table-wrap">
         <table className="standings">
@@ -40,14 +47,32 @@ export default function Standings({ standings, onOpenRules }) {
           <tbody>
             {standings.rows.map((p) => {
               const isLast = p === last && standings.rows.length > 1;
+              const key = p.full;
+              const isOpen = open === key;
+              const detailId = `detalhe-${p.pos}`;
+              const toggle = () => setOpen(isOpen ? null : key);
               return (
-                <tr key={`${p.pos}-${p.full}`} className={p.pos === 1 ? "is-leader" : isLast ? "is-last" : ""}>
+                <Fragment key={`${p.pos}-${p.full}`}>
+                <tr
+                  className={`row-toggle ${p.pos === 1 ? "is-leader" : isLast ? "is-last" : ""} ${isOpen ? "is-open" : ""}`}
+                  onClick={toggle}
+                >
                   <td className="num rank">{p.pos}</td>
                   <th scope="row" className="left player">
-                    <span className="player-name">
+                    <button
+                      type="button"
+                      className="player-name player-toggle"
+                      aria-expanded={isOpen}
+                      aria-controls={detailId}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggle();
+                      }}
+                    >
+                      <span className="chevron" aria-hidden="true">›</span>
                       {p.nome}
                       {isLast && <span className="lantern" title="Hoje, o último colocado ganharia o Coringa da Lanterna na 2ª edição">Lanterna</span>}
-                    </span>
+                    </button>
                     {p.tag && <span className="player-sub">{p.tag}</span>}
                   </th>
                   <td className="num pts">{p.pts}</td>
@@ -59,6 +84,14 @@ export default function Standings({ standings, onOpenRules }) {
                   <td className="num opt">{p.gm}</td>
                   <td className="num opt">{p.aprov == null ? "–" : p.aprov}</td>
                 </tr>
+                {isOpen && (
+                  <tr className="detail-row" id={detailId}>
+                    <td colSpan={COLS}>
+                      <PlayerDetail p={p} games={games} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               );
             })}
           </tbody>

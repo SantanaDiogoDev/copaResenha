@@ -142,12 +142,55 @@ tbody th { font-weight: 500; }
 .up { color: var(--up); }
 .down { color: var(--down); }
 
+/* Linha expansível do participante */
+.row-toggle { cursor: pointer; }
+.row-toggle:hover > * { background: rgba(241, 245, 236, 0.05); }
+.row-toggle.is-open > * { background: rgba(241, 245, 236, 0.08); border-bottom-color: transparent; }
+.player-toggle {
+  background: none; border: 0; padding: 0; margin: 0; font: inherit; font-weight: 600;
+  color: inherit; text-align: left; cursor: pointer;
+}
+.chevron {
+  display: inline-block; width: 0.9rem; margin-right: 0.2rem; color: var(--chalk-soft);
+  transition: transform 0.2s ease;
+}
+.is-open .chevron { transform: rotate(90deg); color: var(--amber); }
+.detail-row > td { padding: 0; background: rgba(14, 51, 34, 0.75); }
+
+.player-detail { padding: 1rem 1rem 1.25rem; box-shadow: inset 4px 0 0 var(--amber); }
+.pd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.5rem; margin: 0 0 1rem; }
+.pd-stats div { background: var(--board); border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.7rem; }
+.pd-stats dt { font-size: 0.8rem; color: var(--chalk-soft); }
+.pd-stats dd { margin: 0; font-family: var(--display); font-size: 1.5rem; font-weight: 700; }
+.pd-title { font-family: var(--display); font-weight: 600; font-size: 1.2rem; margin: 0 0 0.4rem; }
+.pd-games { list-style: none; margin: 0; padding: 0; }
+.pd-game {
+  display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 0.2rem 0.75rem;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--line);
+}
+.pd-game:last-child { border-bottom: 0; }
+.pd-badge {
+  width: 1.7rem; height: 1.7rem; display: grid; place-items: center; border-radius: 6px;
+  font-family: var(--display); font-weight: 700; color: var(--board);
+}
+.pd-V { background: var(--up); }
+.pd-E { background: var(--chalk-soft); }
+.pd-D { background: var(--down); }
+.pd-score { font-family: var(--display); font-weight: 700; font-size: 1.3rem; color: var(--amber); min-width: 3.2rem; text-align: center; }
+.pd-opp { font-weight: 500; overflow-wrap: anywhere; }
+.pd-vs { color: var(--chalk-soft); font-size: 0.85rem; }
+.pd-clubs { display: block; font-size: 0.82rem; color: var(--chalk-soft); }
+.pd-round { font-size: 0.85rem; color: var(--chalk-soft); text-align: right; }
+
 .data th, .data td { white-space: nowrap; }
 
 @media (max-width: 560px) {
   .opt { display: none; }
   th, td { padding: 0.55rem 0.35rem; }
   .standings .player { min-width: 8rem; }
+  .player-detail { padding: 0.75rem 0.6rem 1rem; }
+  .pd-game { grid-template-columns: auto auto 1fr; }
+  .pd-round { grid-column: 3; text-align: left; }
   .logo { width: 5.5rem; height: 5.5rem; }
 }
 
@@ -197,6 +240,7 @@ tbody th { font-weight: 500; }
 @media (prefers-reduced-motion: reduce) {
   .dot { animation: none; }
   .progress-bar { transition: none; }
+  .chevron { transition: none; }
 }
 
 /* ---------- Ajustes do regulamento ---------- */

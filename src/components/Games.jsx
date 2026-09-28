@@ -44,7 +44,7 @@ function pageKey(g) {
   return g.roundNum ? `${g.leg || ""}#${g.roundNum}` : g.round || "sem-rodada";
 }
 
-function pageLabel(g) {
+export function pageLabel(g) {
   if (g.roundNum) {
     const inLeg = g.roundNum > REG.jogosPorTurno ? g.roundNum - REG.jogosPorTurno : g.roundNum;
     return g.leg ? `Rodada ${inLeg} · ${g.leg}` : `Rodada ${inLeg}`;
