@@ -184,6 +184,12 @@ export default function Rules({ target }) {
           resultados do returno não mudam os classificados nem os confrontos.
         </p>
 
+        <h4>Clube no mata-mata</h4>
+        <p>
+          Cada jogador escolhe <strong>1 clube entre os que já está usando</strong> no campeonato e joga com ele o
+          mata-mata inteiro, da primeira partida até a final.
+        </p>
+
         <h4>Como são os confrontos</h4>
         <ul className="rule-list">
           <li>Jogo único, sem vantagem de empate para ninguém.</li>

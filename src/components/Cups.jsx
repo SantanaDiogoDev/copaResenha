@@ -135,7 +135,8 @@ export default function Cups({ cups, onOpenRules }) {
       <h2 className="section-title">Champions e Europa League</h2>
       <p className="muted small intro">
         Mata-mata em jogo único. Os 5 primeiros da classificação ao fim do 1º turno disputam a Champions League e os 5
-        últimos, a Europa League. Os dois piores de cada grupo fazem a preliminar.{" "}
+        últimos, a Europa League. Os dois piores de cada grupo fazem a preliminar. Cada jogador escolhe 1 clube entre
+        os que já usa no campeonato e vai com ele o mata-mata todo.{" "}
         <button className="link" onClick={() => onOpenRules("mata-mata")}>Ver as regras do mata-mata</button>
       </p>
       {status && <p className="cup-status">{status}</p>}
