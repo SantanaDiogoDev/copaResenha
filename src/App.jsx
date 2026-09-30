@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useSheet, REFRESH_MS } from "./useSheet.js";
-import { parseStandings, parseGames, parseGenericSheet } from "./parsers.js";
+import { parseStandings, parseGames, parseCups, parseGenericSheet } from "./parsers.js";
 import Scoreboard from "./components/Scoreboard.jsx";
 import Standings from "./components/Standings.jsx";
 import Games from "./components/Games.jsx";
+import Cups from "./components/Cups.jsx";
 import DataTable from "./components/DataTable.jsx";
 import Empty from "./components/Empty.jsx";
 import Rules from "./components/Rules.jsx";
@@ -11,6 +12,7 @@ import Rules from "./components/Rules.jsx";
 const TABS = [
   { id: "classificacao", label: "Classificação" },
   { id: "jogos", label: "Jogos" },
+  { id: "mata-mata", label: "Mata-mata" },
   { id: "participantes", label: "Participantes" },
   { id: "clubes", label: "Clubes" },
   { id: "regras", label: "Regras" },
@@ -32,6 +34,7 @@ export default function App() {
     return {
       standings: parseStandings(sheets),
       games: parseGames(sheets),
+      cups: parseCups(sheets),
       participants: parseGenericSheet(sheets, "participantes"),
       clubs: parseGenericSheet(sheets, "clubes"),
     };
@@ -81,8 +84,9 @@ export default function App() {
         {tab !== "regras" && !data && loading && <p className="muted">Carregando a planilha…</p>}
         {tab !== "regras" && !data && !loading && <Empty title="Sem dados ainda" text="Assim que a planilha responder, o campeonato aparece aqui." />}
 
-        {data && tab === "classificacao" && <Standings standings={data.standings} games={data.games} onOpenRules={openRules} />}
+        {data && tab === "classificacao" && <Standings standings={data.standings} games={data.games} cups={data.cups} onOpenRules={openRules} />}
         {data && tab === "jogos" && <Games games={data.games} onOpenRules={openRules} />}
+        {data && tab === "mata-mata" && <Cups cups={data.cups} onOpenRules={openRules} />}
         {data && tab === "participantes" && (
           <DataTable title="Participantes" table={data.participants} missing="Participantes" />
         )}

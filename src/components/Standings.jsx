@@ -15,13 +15,18 @@ const LEGEND = [
 
 const COLS = 10;
 
-export default function Standings({ standings, games, onOpenRules }) {
+export default function Standings({ standings, games, cups, onOpenRules }) {
   // Só um participante aberto por vez: abrir outro recolhe o anterior
   const [open, setOpen] = useState(null);
   if (!standings) return <Empty title="Aba de classificação não encontrada" text="A planilha precisa de uma aba com “Classificação” no nome." />;
   if (!standings.rows.length) return <Empty title="Classificação vazia" text="Cadastre os participantes na planilha para montar a tabela." />;
 
   const last = standings.rows[standings.rows.length - 1];
+  // Zonas do mata-mata: metade de cima na Champions (a mais, se for ímpar) e o resto na Europa.
+  // Usa a divisão da aba do mata-mata quando existir.
+  const total = standings.rows.length;
+  const uclCount = cups?.seeds?.filter((s) => s.cup === "champions").length || Math.ceil(total / 2);
+  const zone = (i) => (i < uclCount ? "zone-ucl" : "zone-uel");
 
   return (
     <section>
@@ -45,7 +50,7 @@ export default function Standings({ standings, games, onOpenRules }) {
             </tr>
           </thead>
           <tbody>
-            {standings.rows.map((p) => {
+            {standings.rows.map((p, i) => {
               const isLast = p === last && standings.rows.length > 1;
               const key = p.full;
               const isOpen = open === key;
@@ -54,7 +59,7 @@ export default function Standings({ standings, games, onOpenRules }) {
               return (
                 <Fragment key={`${p.pos}-${p.full}`}>
                 <tr
-                  className={`row-toggle ${p.pos === 1 ? "is-leader" : isLast ? "is-last" : ""} ${isOpen ? "is-open" : ""}`}
+                  className={`row-toggle ${zone(i)} ${p.pos === 1 ? "is-leader" : isLast ? "is-last" : ""} ${isOpen ? "is-open" : ""}`}
                   onClick={toggle}
                 >
                   <td className="num rank">{p.pos}</td>
@@ -97,6 +102,17 @@ export default function Standings({ standings, games, onOpenRules }) {
           </tbody>
         </table>
       </div>
+
+      <ul className="zones" aria-label="Legenda das zonas">
+        <li><span className="zone-swatch zone-ucl" aria-hidden="true" />Champions League ({total > 1 ? `1º ao ${uclCount}º` : "1º"})</li>
+        {total > uclCount && (
+          <li><span className="zone-swatch zone-uel" aria-hidden="true" />Europa League ({uclCount + 1}º ao {total}º)</li>
+        )}
+      </ul>
+      <p className="muted small">
+        Quem vai para cada mata-mata é definido pela classificação ao fim do 1º turno.{" "}
+        <button className="link" onClick={() => onOpenRules("mata-mata")}>Entenda o mata-mata</button>
+      </p>
 
       <div className="explain">
         <h3>Como ler a tabela</h3>

@@ -7,6 +7,7 @@ const SECTIONS = [
   ["clubes", "Escolha dos clubes"],
   ["espelhado", "Jogo espelhado"],
   ["pontuacao", "Pontuação e desempate"],
+  ["mata-mata", "Champions e Europa League"],
   ["desconexao", "Desconexões"],
   ["conduta", "W.O. e conduta"],
   ["coringa", "Coringa da Lanterna"],
@@ -113,9 +114,14 @@ export default function Rules({ target }) {
       <article id="regra-formato" className="rule">
         <h3>Formato</h3>
         <p>
-          Pontos corridos em turno e returno: cada participante enfrenta todos os outros duas vezes. A classificação
-          final é definida só pela tabela, sem mata-mata. As partidas podem ser jogadas em PS5, Xbox Series X|S e PC,
-          com crossplay, e todos precisam estar aptos a usá-lo.
+          Pontos corridos em turno e returno: cada participante enfrenta todos os outros duas vezes. O campeão da Liga
+          é definido só pela tabela. As partidas podem ser jogadas em PS5, Xbox Series X|S e PC, com crossplay, e todos
+          precisam estar aptos a usá-lo.
+        </p>
+        <p>
+          Ao fim do 1º turno, a tabela também define quem disputa a{" "}
+          <button className="link" onClick={() => go("mata-mata")}>Champions e a Europa League</button>, dois
+          mata-matas paralelos ao returno.
         </p>
       </article>
 
@@ -164,6 +170,54 @@ export default function Rules({ target }) {
           <div><span className="example-label">Placar real</span><span className="example-score">7 x 0</span></div>
           <div><span className="example-label">No saldo da tabela</span><span className="example-score"><span className="up">+3</span> e <span className="down">-3</span></span></div>
         </div>
+      </article>
+
+      <article id="regra-mata-mata" className="rule">
+        <h3>Champions e Europa League</h3>
+        <p>
+          Ao fim do 1º turno, os participantes se dividem em dois mata-matas. Com {REG.participantes} jogadores, do 1º ao
+          5º vão para a <strong>Champions League</strong> e do 6º ao 10º para a <strong>Europa League</strong>. Se o
+          total de participantes for ímpar, a Champions recebe um a mais.
+        </p>
+        <p className="callout">
+          <strong>Vale só o 1º turno:</strong> a divisão usa uma classificação exclusiva com os jogos do turno. Os
+          resultados do returno não mudam os classificados nem os confrontos.
+        </p>
+
+        <h4>Como são os confrontos</h4>
+        <ul className="rule-list">
+          <li>Jogo único, sem vantagem de empate para ninguém.</li>
+          <li>Empate no tempo normal vai para a prorrogação. Se persistir, a vaga sai nos pênaltis.</li>
+          <li>Os gols dos pênaltis não entram no placar da partida.</li>
+          <li>Os cabeças de chave seguem a posição no 1º turno, e a folga da preliminar fica com os melhores colocados.</li>
+        </ul>
+
+        <div className="table-wrap">
+          <table className="data rules-table">
+            <thead>
+              <tr>
+                <th scope="col" className="left">Fase</th>
+                <th scope="col" className="left">Champions League</th>
+                <th scope="col" className="left">Europa League</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row" className="left">Preliminar</th><td className="left">4º x 5º</td><td className="left">9º x 10º</td></tr>
+              <tr><th scope="row" className="left">Semifinal</th><td className="left">1º x vencedor da preliminar</td><td className="left">6º x vencedor da preliminar</td></tr>
+              <tr><th scope="row" className="left">Semifinal</th><td className="left">2º x 3º</td><td className="left">7º x 8º</td></tr>
+              <tr><th scope="row" className="left">Final</th><td className="left">Vencedores das semifinais</td><td className="left">Vencedores das semifinais</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Desempate na classificação do 1º turno</h4>
+        <ol className="criteria">
+          {CRITERIOS_DESEMPATE.map((c) => <li key={c}>{c === "Confronto direto" ? "Confronto direto entre os empatados" : c}</li>)}
+        </ol>
+        <p className="muted small">
+          Se algum placar do 1º turno for corrigido, a classificação é recalculada. Empates absolutos devem ser
+          resolvidos antes do início dos mata-matas.
+        </p>
       </article>
 
       <article id="regra-desconexao" className="rule">

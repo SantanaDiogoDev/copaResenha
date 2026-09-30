@@ -215,3 +215,102 @@ export function parseGenericSheet(sheets, name) {
   const sheet = findSheet(sheets, name);
   return sheet ? extractTable(sheet.rows) : null;
 }
+
+/* ---------- Champions e Europa League (mata-mata) ---------- */
+// A aba tem várias tabelas lado a lado, então cada uma é localizada pela célula do cabeçalho
+// (linha + coluna) em vez de pela linha inteira.
+const CUP_ID_RE = /^[a-z]{1,3}\d+$/i;
+const ADMIN_NOTE_RE = /preencha|informe|revise|resolva|celulas amarelas/;
+
+function findHeaders(rows, first, ...others) {
+  const out = [];
+  rows.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (norm(cell) !== first) return;
+      const cols = { [first]: c };
+      for (let i = c + 1; i < Math.min(row.length, c + 14) && text(row[i]); i++) cols[norm(row[i])] = i;
+      if (others.every((o) => o in cols)) out.push({ r, cols });
+    });
+  });
+  return out;
+}
+
+function cupName(title) {
+  const t = norm(title);
+  if (t.includes("champions")) return { key: "champions", name: "Champions League" };
+  if (t.includes("europa")) return { key: "europa", name: "Europa League" };
+  return { key: t, name: text(title).split("—")[0].trim() };
+}
+
+export function parseCups(sheets) {
+  const sheet = findSheet(sheets, "champions", "europa", "mata");
+  if (!sheet) return null;
+  const rows = sheet.rows;
+  const cell = (r, c) => text(rows[r]?.[c]);
+
+  // Cruzamentos: número positivo = posição no grupo, negativo = vencedor daquele jogo
+  const origins = {};
+  for (const { r, cols } of findHeaders(rows, "jogo", "origem a", "origem b")) {
+    for (let i = r + 1; CUP_ID_RE.test(cell(i, cols.jogo)); i++) {
+      origins[cell(i, cols.jogo)] = [toNum(cell(i, cols["origem a"])), toNum(cell(i, cols["origem b"]))];
+    }
+  }
+
+  // Classificação do 1º turno, que define quem vai para cada copa
+  const seeds = [];
+  for (const { r, cols } of findHeaders(rows, "pos.", "participante", "competicao")) {
+    for (let i = r + 1; cell(i, cols["pos."]); i++) {
+      seeds.push({
+        pos: toNum(cell(i, cols["pos."])),
+        full: cell(i, cols.participante),
+        pts: toNum(cell(i, cols.pts)),
+        cup: cupName(cell(i, cols.competicao)).key,
+      });
+    }
+  }
+  const seedOf = (full) => seeds.find((s) => norm(s.full) === norm(full))?.pos ?? null;
+
+  const cups = findHeaders(rows, "jogo", "fase", "jogador a", "jogador b").map(({ r, cols }) => {
+    const { key, name } = cupName(cell(r - 1, cols.jogo));
+    const games = [];
+    let i = r + 1;
+    for (; CUP_ID_RE.test(cell(i, cols.jogo)); i++) {
+      const id = cell(i, cols.jogo);
+      const get = (k) => (cols[k] != null ? cell(i, cols[k]) : "");
+      const a = get("jogador a");
+      const b = get("jogador b");
+      const ga = toNum(get("gols a"));
+      const gb = toNum(get("gols b"));
+      const pa = toNum(get("pen. a"));
+      const pb = toNum(get("pen. b"));
+      const played = Boolean(a && b) && ga != null && gb != null;
+      let winner = get("vencedor");
+      if (!winner && played) {
+        if (ga !== gb) winner = ga > gb ? a : b;
+        else if (pa != null && pb != null && pa !== pb) winner = pa > pb ? a : b;
+      }
+      games.push({ id, phase: get("fase"), a, b, ga, gb, pa, pb, played, winner, status: get("situacao"), origin: origins[id] || [] });
+    }
+    // "CAMPEÃO" fica logo abaixo da chave, com o nome na próxima célula preenchida
+    let champion = "";
+    for (let k = i; k < Math.min(rows.length, i + 12); k++) {
+      if (norm(cell(k, cols.jogo)).startsWith("campe")) {
+        champion = text((rows[k] || []).slice(cols.jogo + 1).find((v) => text(v) !== ""));
+        break;
+      }
+    }
+    if (/a definir/i.test(champion)) champion = "";
+    for (const g of games) {
+      g.seedA = seedOf(g.a);
+      g.seedB = seedOf(g.b);
+    }
+    return { key, name, games, champion, seeds: seeds.filter((s) => s.cup === key) };
+  });
+
+  // Avisos da coluna A para o público (as instruções de preenchimento ficam de fora)
+  const notes = rows
+    .map((row) => text(row[0]))
+    .filter((t) => t.length > 40 && !ADMIN_NOTE_RE.test(norm(t)));
+
+  return { cups, seeds, notes };
+}
