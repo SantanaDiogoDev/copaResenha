@@ -8,13 +8,12 @@ const LEGEND = [
   ["Pts", "Pontos: vitória vale 3, empate vale 1 e derrota não pontua."],
   ["J", `Jogos disputados. Cada participante joga ${REG.jogosPorParticipante} no campeonato.`],
   ["V / E / D", "Vitórias, empates e derrotas."],
-  ["SG", "Saldo de gols real: gols marcados menos gols sofridos."],
-  ["SGA", `Saldo de gols ajustado: cada partida conta no máximo +${REG.limiteSaldoPorPartida} ou -${REG.limiteSaldoPorPartida}. É o saldo que vale no desempate.`],
+  ["SG", `Saldo de gols ajustado: cada partida conta no máximo +${REG.limiteSaldoPorPartida} ou -${REG.limiteSaldoPorPartida}. É o saldo que vale no desempate.`],
   ["GM / GC", "Gols marcados e gols sofridos, pelo placar real."],
   ["%", "Aproveitamento: pontos conquistados sobre os pontos possíveis."],
 ];
 
-const COLS = 12;
+const COLS = 11;
 
 export default function Standings({ standings, games, cups, onOpenRules }) {
   // Só um participante aberto por vez: abrir outro recolhe o anterior
@@ -51,8 +50,7 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
               <th scope="col" className="num" title="Vitórias">V</th>
               <th scope="col" className="num" title="Empates">E</th>
               <th scope="col" className="num" title="Derrotas">D</th>
-              <th scope="col" className="num" title="Saldo de gols real">SG</th>
-              <th scope="col" className="num" title="Saldo de gols ajustado">SGA</th>
+              <th scope="col" className="num" title="Saldo de gols ajustado">SG</th>
               <th scope="col" className="num opt" title="Gols marcados">GM</th>
               <th scope="col" className="num opt" title="Gols sofridos">GC</th>
               <th scope="col" className="num opt" title="Aproveitamento">%</th>
@@ -94,7 +92,6 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
                   <td className="num">{p.v}</td>
                   <td className="num">{p.e}</td>
                   <td className="num">{p.d}</td>
-                  <td className={`num ${tone(p.sg)}`}>{signed(p.sg)}</td>
                   <td className={`num ${tone(adjusted(p))}`}>{signed(adjusted(p))}</td>
                   <td className="num opt">{p.gm}</td>
                   <td className="num opt">{gc(p)}</td>
