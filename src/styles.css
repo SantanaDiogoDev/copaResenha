@@ -138,6 +138,16 @@ tbody th { font-weight: 500; }
 .player-name { display: block; font-weight: 600; }
 .player-sub { display: block; font-size: 0.85rem; color: var(--chalk-soft); }
 .standings .pts { font-family: var(--display); font-size: 1.35rem; font-weight: 700; }
+/* Alternância saldo real / ajustado */
+.view-switch { display: inline-flex; margin: 0.9rem 0 0.4rem; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--board); }
+.view-btn {
+  background: transparent; border: 0; border-radius: 999px; padding: 0.35rem 1rem;
+  font: inherit; font-weight: 500; color: var(--chalk-soft); cursor: pointer;
+}
+.view-btn:hover { color: var(--chalk); }
+.view-btn[aria-pressed="true"] { background: var(--amber); color: var(--board); font-weight: 600; }
+.view-note { margin: 0 0 0.75rem; }
+
 /* Zonas do mata-mata: dois tons de verde */
 .zone-ucl > * { background: rgba(155, 232, 173, 0.14); }
 .zone-uel > * { background: rgba(4, 28, 16, 0.45); }

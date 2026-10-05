@@ -111,7 +111,9 @@ export function parseStandings(sheets) {
     v: col("v", "vitorias"),
     e: col("e", "empates"),
     d: col("d", "derrotas"),
-    sg: col("sg", "saldo"),
+    sg: col("sg", "saldo", "saldo de gols"),
+    sgAjust: col("sg ajust.", "sg ajust", "sg ajustado", "saldo ajustado"),
+    gc: col("gc", "gols contra", "gols sofridos", "gs"),
     gm: col("gm", "gols marcados", "gp"),
     conf: col("confronto"),
   };
@@ -135,6 +137,9 @@ export function parseStandings(sheets) {
         e: get(r, "e") ?? 0,
         d: get(r, "d") ?? 0,
         sg: get(r, "sg") ?? 0,
+        // null quando a planilha não tem a coluna; aí a tela calcula pelos jogos
+        sgAjust: get(r, "sgAjust"),
+        gc: get(r, "gc"),
         gm: get(r, "gm") ?? 0,
         conf: get(r, "conf"),
         aprov: j > 0 ? Math.round((pts / (j * 3)) * 100) : null,

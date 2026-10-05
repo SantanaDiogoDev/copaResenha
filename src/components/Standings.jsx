@@ -2,22 +2,28 @@ import { Fragment, useState } from "react";
 import { signed } from "../parsers.js";
 import { REG, CRITERIOS_DESEMPATE } from "../regulamento.js";
 import Empty from "./Empty.jsx";
-import PlayerDetail from "./PlayerDetail.jsx";
+import PlayerDetail, { cap, playerGames } from "./PlayerDetail.jsx";
 
 const LEGEND = [
   ["Pts", "Pontos: vitória vale 3, empate vale 1 e derrota não pontua."],
   ["J", `Jogos disputados. Cada participante joga ${REG.jogosPorParticipante} no campeonato.`],
   ["V / E / D", "Vitórias, empates e derrotas."],
-  ["SG", "Saldo de gols ajustado: cada partida conta no máximo +3 ou -3."],
-  ["GM", "Gols marcados, pelo placar real."],
+  ["SG", `Saldo de gols. No saldo real é a diferença entre gols marcados e sofridos; no ajustado, cada partida conta no máximo +${REG.limiteSaldoPorPartida} ou -${REG.limiteSaldoPorPartida}.`],
+  ["GM / GC", "Gols marcados e gols sofridos, pelo placar real."],
   ["%", "Aproveitamento: pontos conquistados sobre os pontos possíveis."],
 ];
 
-const COLS = 10;
+const COLS = 11;
+
+const VIEWS = [
+  { id: "real", label: "Saldo real" },
+  { id: "ajustado", label: "Saldo ajustado" },
+];
 
 export default function Standings({ standings, games, cups, onOpenRules }) {
   // Só um participante aberto por vez: abrir outro recolhe o anterior
   const [open, setOpen] = useState(null);
+  const [view, setView] = useState("real");
   if (!standings) return <Empty title="Aba de classificação não encontrada" text="A planilha precisa de uma aba com “Classificação” no nome." />;
   if (!standings.rows.length) return <Empty title="Classificação vazia" text="Cadastre os participantes na planilha para montar a tabela." />;
 
@@ -28,10 +34,29 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
   const uclCount = cups?.seeds?.filter((s) => s.cup === "champions").length || Math.ceil(total / 2);
   const zone = (i) => (i < uclCount ? "zone-ucl" : "zone-uel");
 
+  // Saldo ajustado: usa a coluna da planilha; sem ela, soma os jogos com o limite por partida
+  const adjusted = (p) =>
+    p.sgAjust ?? playerGames(p, games?.list).filter((g) => g.played).reduce((s, g) => s + cap(g.gf - g.ga), 0);
+  const gc = (p) => p.gc ?? p.gm - p.sg;
+  const sgOf = (p) => (view === "ajustado" ? adjusted(p) : p.sg);
+
   return (
     <section>
       <h2 className="section-title">Classificação</h2>
       <p className="muted small intro">Toque em um participante para ver os jogos e os números dele.</p>
+
+      <div className="view-switch" role="group" aria-label="Saldo de gols exibido">
+        {VIEWS.map((v) => (
+          <button key={v.id} type="button" className="view-btn" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
+            {v.label}
+          </button>
+        ))}
+      </div>
+      <p className="muted small view-note">
+        {view === "ajustado"
+          ? `Cada partida conta no máximo +${REG.limiteSaldoPorPartida} ou -${REG.limiteSaldoPorPartida} no saldo: um 7 x 0 vale +${REG.limiteSaldoPorPartida} para o vencedor. É este saldo que conta no desempate.`
+          : "Saldo pelo placar real de cada partida: gols marcados menos gols sofridos."}
+      </p>
 
       <div className="table-wrap">
         <table className="standings">
@@ -44,8 +69,9 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
               <th scope="col" className="num" title="Vitórias">V</th>
               <th scope="col" className="num" title="Empates">E</th>
               <th scope="col" className="num" title="Derrotas">D</th>
-              <th scope="col" className="num" title="Saldo de gols ajustado">SG</th>
+              <th scope="col" className="num" title={view === "ajustado" ? "Saldo de gols ajustado" : "Saldo de gols real"}>SG</th>
               <th scope="col" className="num opt" title="Gols marcados">GM</th>
+              <th scope="col" className="num opt" title="Gols sofridos">GC</th>
               <th scope="col" className="num opt" title="Aproveitamento">%</th>
             </tr>
           </thead>
@@ -85,8 +111,9 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
                   <td className="num">{p.v}</td>
                   <td className="num">{p.e}</td>
                   <td className="num">{p.d}</td>
-                  <td className={`num ${p.sg > 0 ? "up" : p.sg < 0 ? "down" : ""}`}>{signed(p.sg)}</td>
+                  <td className={`num ${sgOf(p) > 0 ? "up" : sgOf(p) < 0 ? "down" : ""}`}>{signed(sgOf(p))}</td>
                   <td className="num opt">{p.gm}</td>
+                  <td className="num opt">{gc(p)}</td>
                   <td className="num opt">{p.aprov == null ? "–" : p.aprov}</td>
                 </tr>
                 {isOpen && (

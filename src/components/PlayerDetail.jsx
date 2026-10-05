@@ -31,7 +31,7 @@ export function playerGames(p, list = []) {
     });
 }
 
-const cap = (n) => Math.max(-REG.limiteSaldoPorPartida, Math.min(REG.limiteSaldoPorPartida, n));
+export const cap = (n) => Math.max(-REG.limiteSaldoPorPartida, Math.min(REG.limiteSaldoPorPartida, n));
 const RESULT_LABEL = { V: "Vitória", E: "Empate", D: "Derrota" };
 
 export default function PlayerDetail({ p, games }) {
