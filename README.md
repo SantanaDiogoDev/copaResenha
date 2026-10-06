@@ -1,6 +1,6 @@
 # Liga Soriano
 
-Site em React que lê a planilha do campeonato no Google Drive e mostra classificação, jogos, participantes, clubes e as regras oficiais, atualizando sozinho a cada 30 segundos.
+Site em React que lê a planilha do campeonato no Google Drive e mostra classificação, jogos, o mata-mata (Champions e Europa League) e as regras oficiais, atualizando sozinho a cada 30 segundos.
 
 Os números fixos do regulamento (90 partidas, 18 por participante, critérios de desempate) ficam em `src/regulamento.js`. O texto da aba Regras está em `src/components/Rules.jsx` — o conteúdo foi conferido contra o PDF `Regulamento_Oficial_Liga_Soriano_com_Regra_de_Desconexao.pdf` e está fiel ao documento, incluindo o Anexo I (desconexões).
 
@@ -8,7 +8,7 @@ Os números fixos do regulamento (90 partidas, 18 por participante, critérios d
 
 O navegador não consegue ler um arquivo do Google Drive direto (bloqueio de CORS), então uma Netlify Function (`netlify/functions/planilha.mjs`) baixa a planilha, converte todas as abas para JSON e entrega em `/api/planilha`. O React consulta esse endereço periodicamente e sempre que a aba do navegador volta a ficar visível.
 
-As abas são localizadas pelo nome ("Classificação", "Jogos", "Participantes", "Clubes") e as colunas pelo cabeçalho, então mudar a posição das tabelas na planilha não quebra o site. Abas que começam com `_` são ignoradas (ex.: `_Calculos`).
+As abas são localizadas pelo nome ("Classificação", "Jogos", "Champions e Europa") e as colunas pelo cabeçalho, então mudar a posição das tabelas na planilha não quebra o site. Abas que começam com `_` são ignoradas (ex.: `_Calculos`).
 
 ## Requisitos da planilha
 
@@ -38,7 +38,7 @@ O projeto também tem um `.claude/launch.json` configurado para abrir automatica
 
 1. Suba com `npm run dev` e abra `http://localhost:8888`.
 2. Confira o console do navegador: não deve ter nenhum erro (F12 → Console).
-3. Passe por todas as abas — Classificação, Jogos, Participantes, Clubes e Regras — e confira que os dados batem com a planilha oficial.
+3. Passe por todas as abas — Classificação, Jogos, Mata-mata e Regras — e confira que os dados batem com a planilha oficial.
    - Em Jogos, teste o seletor de rodada e os botões Anterior/Próxima; confira que não aparece nenhuma partida "Jogador 1 x Jogador 2".
 4. Clique em "Atualizar agora" no topo e confirme que a hora "Atualizado às…" muda.
 5. Na aba Regras, teste a calculadora de queda de conexão (seção "Desconexões") com o exemplo padrão (63:40, 2×1) — o resultado oficial deve dar 3×2, igual ao exemplo do regulamento.

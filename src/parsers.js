@@ -215,12 +215,6 @@ export function parseGames(sheets) {
   return { list };
 }
 
-/* ---------- Participantes / Clubes ---------- */
-export function parseGenericSheet(sheets, name) {
-  const sheet = findSheet(sheets, name);
-  return sheet ? extractTable(sheet.rows) : null;
-}
-
 /* ---------- Champions e Europa League (mata-mata) ---------- */
 // A aba tem várias tabelas lado a lado, então cada uma é localizada pela célula do cabeçalho
 // (linha + coluna) em vez de pela linha inteira.
