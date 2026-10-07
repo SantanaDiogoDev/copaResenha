@@ -22,10 +22,10 @@ export default function Standings({ standings, games, cups, onOpenRules }) {
   if (!standings.rows.length) return <Empty title="Classificação vazia" text="Cadastre os participantes na planilha para montar a tabela." />;
 
   const last = standings.rows[standings.rows.length - 1];
-  // Zonas do mata-mata: metade de cima na Champions (a mais, se for ímpar) e o resto na Europa.
+  // Zonas do mata-mata: metade de cima na Champions e o resto na Europa (que fica com um a mais, se for ímpar).
   // Usa a divisão da aba do mata-mata quando existir.
   const total = standings.rows.length;
-  const uclCount = cups?.seeds?.filter((s) => s.cup === "champions").length || Math.ceil(total / 2);
+  const uclCount = cups?.seeds?.filter((s) => s.cup === "champions").length || Math.floor(total / 2);
   const zone = (i) => (i < uclCount ? "zone-ucl" : "zone-uel");
 
   // Saldo ajustado: usa a coluna da planilha; sem ela, soma os jogos com o limite por partida

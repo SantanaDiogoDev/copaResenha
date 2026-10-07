@@ -177,7 +177,7 @@ export default function Rules({ target }) {
         <p>
           Ao fim do 1º turno, os participantes se dividem em dois mata-matas. Com {REG.participantes} jogadores, do 1º ao
           5º vão para a <strong>Champions League</strong> e do 6º ao 10º para a <strong>Europa League</strong>. Se o
-          total de participantes for ímpar, a Champions recebe um a mais.
+          total de participantes for ímpar, a Europa recebe um a mais.
         </p>
         <p className="callout">
           <strong>Vale só o 1º turno:</strong> a divisão usa uma classificação exclusiva com os jogos do turno. Os
@@ -196,6 +196,10 @@ export default function Rules({ target }) {
           <li>Empate no tempo normal vai para a prorrogação. Se persistir, a vaga sai nos pênaltis.</li>
           <li>Os gols dos pênaltis não entram no placar da partida.</li>
           <li>Os cabeças de chave seguem a posição no 1º turno, e a folga da preliminar fica com os melhores colocados.</li>
+          <li>
+            <strong>3º lugar:</strong> jogo único entre os perdedores das semifinais, também com prorrogação e pênaltis
+            em caso de empate. Se a copa tiver só 3 participantes, quem cair antes da final fica em 3º automaticamente.
+          </li>
         </ul>
 
         <div className="table-wrap">
@@ -211,6 +215,7 @@ export default function Rules({ target }) {
               <tr><th scope="row" className="left">Preliminar</th><td className="left">4º x 5º</td><td className="left">9º x 10º</td></tr>
               <tr><th scope="row" className="left">Semifinal</th><td className="left">1º x vencedor da preliminar</td><td className="left">6º x vencedor da preliminar</td></tr>
               <tr><th scope="row" className="left">Semifinal</th><td className="left">2º x 3º</td><td className="left">7º x 8º</td></tr>
+              <tr><th scope="row" className="left">3º lugar</th><td className="left">Perdedores das semifinais</td><td className="left">Perdedores das semifinais</td></tr>
               <tr><th scope="row" className="left">Final</th><td className="left">Vencedores das semifinais</td><td className="left">Vencedores das semifinais</td></tr>
             </tbody>
           </table>

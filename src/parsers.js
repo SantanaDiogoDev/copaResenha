@@ -219,6 +219,9 @@ export function parseGames(sheets) {
 // A aba tem várias tabelas lado a lado, então cada uma é localizada pela célula do cabeçalho
 // (linha + coluna) em vez de pela linha inteira.
 const CUP_ID_RE = /^[a-z]{1,3}\d+$/i;
+// Jogos da chave, incluindo o de 3º lugar ("C3º")
+const CUP_GAME_RE = /^[a-z]{1,3}\d+[º°o]?$/i;
+const isThirdPlace = (phase) => /3\s*[º°o]?\s*lugar|terceiro/.test(norm(phase));
 const ADMIN_NOTE_RE = /preencha|informe|revise|resolva|celulas amarelas/;
 
 function findHeaders(rows, first, ...others) {
@@ -269,12 +272,26 @@ export function parseCups(sheets) {
   }
   const seedOf = (full) => seeds.find((s) => norm(s.full) === norm(full))?.pos ?? null;
 
-  const cups = findHeaders(rows, "jogo", "fase", "jogador a", "jogador b").map(({ r, cols }) => {
+  const headers = findHeaders(rows, "jogo", "fase", "jogador a", "jogador b");
+  const cups = headers.map(({ r, cols }, h) => {
     const { key, name } = cupName(cell(r - 1, cols.jogo));
+    // A chave vai até o título da próxima copa (o jogo de 3º lugar e o pódio ficam abaixo dos demais jogos)
+    const end = headers[h + 1] ? headers[h + 1].r - 1 : rows.length;
     const games = [];
-    let i = r + 1;
-    for (; CUP_ID_RE.test(cell(i, cols.jogo)); i++) {
+    const podium = { first: "", second: "", third: "" };
+    for (let i = r + 1; i < end; i++) {
       const id = cell(i, cols.jogo);
+      const label = norm(id);
+      // Pódio: "1º — CAMPEÃO", "2º — VICE" e "3º LUGAR", com o nome na coluna de jogador. Só rótulos curtos,
+      // para não confundir com notas como "3º lugar: jogo único entre..."
+      const podiumKey =
+        label.length > 20 ? null : /campe/.test(label) ? "first" : /vice/.test(label) ? "second" : /^3.*lugar/.test(label) ? "third" : null;
+      if (podiumKey) {
+        const v = cell(i, cols["jogador a"]) || text((rows[i] || []).slice(cols.jogo + 1, cols.jogo + 10).find((c) => text(c) !== ""));
+        podium[podiumKey] = /a definir/i.test(v) ? "" : v;
+        continue;
+      }
+      if (!CUP_GAME_RE.test(id)) continue;
       const get = (k) => (cols[k] != null ? cell(i, cols[k]) : "");
       const a = get("jogador a");
       const b = get("jogador b");
@@ -288,22 +305,27 @@ export function parseCups(sheets) {
         if (ga !== gb) winner = ga > gb ? a : b;
         else if (pa != null && pb != null && pa !== pb) winner = pa > pb ? a : b;
       }
-      games.push({ id, phase: get("fase"), a, b, ga, gb, pa, pb, played, winner, status: get("situacao"), origin: origins[id] || [] });
+      const loser = winner ? (norm(winner) === norm(a) ? b : a) : "";
+      const phase = get("fase");
+      games.push({ id, phase, third: isThirdPlace(phase), a, b, ga, gb, pa, pb, played, winner, loser, status: get("situacao"), origin: origins[id] || [] });
     }
-    // "CAMPEÃO" fica logo abaixo da chave, com o nome na próxima célula preenchida
-    let champion = "";
-    for (let k = i; k < Math.min(rows.length, i + 12); k++) {
-      if (norm(cell(k, cols.jogo)).startsWith("campe")) {
-        champion = text((rows[k] || []).slice(cols.jogo + 1).find((v) => text(v) !== ""));
-        break;
-      }
-    }
-    if (/a definir/i.test(champion)) champion = "";
+
+    // O 3º lugar reúne os perdedores das semifinais, que são os jogos que alimentam a final
+    const prefix = (games[0]?.id.match(/^[a-z]+/i) || [""])[0];
+    const final = games.find((g) => !g.third && norm(g.phase) === "final");
+    const third = games.find((g) => g.third);
+    if (third && final) third.loserOf = final.origin.filter((o) => o < 0).map((o) => `${prefix}${-o}`);
+
+    // Sem o pódio preenchido na planilha, usa os resultados da final e do 3º lugar
+    const champion = podium.first || final?.winner || "";
+    const vice = podium.second || final?.loser || "";
+    const bronze = podium.third || third?.winner || "";
+
     for (const g of games) {
       g.seedA = seedOf(g.a);
       g.seedB = seedOf(g.b);
     }
-    return { key, name, games, champion, seeds: seeds.filter((s) => s.cup === key) };
+    return { key, name, games, champion, vice, bronze, seeds: seeds.filter((s) => s.cup === key) };
   });
 
   // Avisos da coluna A para o público (as instruções de preenchimento ficam de fora)

@@ -25,7 +25,9 @@ function Slot({ name, seed, goals, pen, won, lost, placeholder }) {
   );
 }
 
-function placeholder(origin, cup) {
+function placeholder(g, side, cup) {
+  if (g.loserOf?.[side]) return `Perdedor ${g.loserOf[side]}`;
+  const origin = g.origin[side];
   if (origin == null) return "A definir";
   if (origin < 0) return `Vencedor ${(cup.games[0]?.id.match(/^[a-z]+/i) || [""])[0]}${-origin}`;
   return `${origin}º do grupo`;
@@ -41,21 +43,27 @@ function CupMatch({ g, cup }) {
         <span className="cm-id">{g.id}</span>
         <span className="cm-status">{g.played ? "Encerrado" : statusLabel(g.status)}</span>
       </div>
-      <Slot name={g.a} seed={g.seedA} goals={g.ga} pen={pens ? g.pa : null} won={aWon} lost={bWon} placeholder={placeholder(g.origin[0], cup)} />
-      <Slot name={g.b} seed={g.seedB} goals={g.gb} pen={pens ? g.pb : null} won={bWon} lost={aWon} placeholder={placeholder(g.origin[1], cup)} />
+      <Slot name={g.a} seed={g.seedA} goals={g.ga} pen={pens ? g.pa : null} won={aWon} lost={bWon} placeholder={placeholder(g, 0, cup)} />
+      <Slot name={g.b} seed={g.seedB} goals={g.gb} pen={pens ? g.pb : null} won={bWon} lost={aWon} placeholder={placeholder(g, 1, cup)} />
     </div>
   );
 }
 
 function Bracket({ cup }) {
   // Uma coluna por fase, na ordem em que aparecem na planilha (Preliminar → Semifinal → Final)
+  // O jogo de 3º lugar não entra nas colunas: fica embaixo da final
   const phases = [];
-  for (const g of cup.games) {
+  const third = cup.games.find((g) => g.third);
+  for (const g of cup.games.filter((x) => !x.third)) {
     let ph = phases.find((p) => p.name === g.phase);
     if (!ph) phases.push((ph = { name: g.phase, games: [] }));
     ph.games.push(g);
   }
-  const { nome, tag } = splitName(cup.champion);
+  const podium = [
+    { place: "1º", label: "1º · Campeão", name: cup.champion, icon: "🏆", cls: "gold" },
+    { place: "2º", label: "2º · Vice", name: cup.vice, icon: "🥈", cls: "silver" },
+    { place: "3º", label: "3º lugar", name: cup.bronze, icon: "🥉", cls: "bronze" },
+  ];
 
   // Um jogo de fase com menos confrontos (ex.: preliminar) fica na altura do jogo que o vencedor
   // vai disputar; as demais posições da coluna ficam vazias
@@ -88,36 +96,43 @@ function Bracket({ cup }) {
         )}
       </header>
 
-      <div className="bracket">
+      <div className="bracket" style={{ "--cols": phases.length + 1 }}>
         {phases.map((ph, pi) => (
           <div key={ph.name} className="bracket-col">
             <h4 className="bracket-phase">{ph.name}</h4>
             <div className="bracket-games">
               {slotsOf(ph, pi).map((g, i) => (
-                <div key={g ? g.id : `vazio-${i}`} className={`bracket-slot ${g ? "" : "empty"}`}>
+                <div key={g ? g.id : `vazio-${i}`} className={`bracket-slot ${g ? "" : "is-empty"}`}>
                   {g && <CupMatch g={g} cup={cup} />}
                 </div>
               ))}
             </div>
           </div>
         ))}
-        <div className="bracket-col bracket-champ">
-          <h4 className="bracket-phase">Campeão</h4>
-          <div className="bracket-games">
-            <div className="bracket-slot">
-              <div className={`champ-card ${cup.champion ? "" : "tbd"}`}>
-                <span className="champ-trophy" aria-hidden="true">🏆</span>
-                {cup.champion ? (
-                  <>
-                    <span className="champ-name">{nome}</span>
-                    {tag && <span className="cm-tag">{tag}</span>}
-                  </>
-                ) : (
-                  <span className="champ-name">A definir</span>
-                )}
-              </div>
-            </div>
+        {/* Linha de baixo, na coluna da final: assim a final continua centralizada entre as semifinais */}
+        {third && (
+          <div className="bracket-third" style={{ "--col": phases.length }}>
+            <h4 className="bracket-phase">{third.phase || "3º lugar"}</h4>
+            <CupMatch g={third} cup={cup} />
           </div>
+        )}
+        <div className="bracket-col bracket-champ">
+          <h4 className="bracket-phase">Pódio</h4>
+          <ol className="podium">
+            {podium.map((p) => {
+              const { nome, tag } = splitName(p.name);
+              return (
+                <li key={p.place} className={`podium-card ${p.cls} ${p.name ? "" : "tbd"}`}>
+                  <span className="podium-icon" aria-hidden="true">{p.icon}</span>
+                  <span className="podium-label">{p.label}</span>
+                  <span className="podium-name">
+                    {p.name ? nome : "A definir"}
+                    {p.name && tag && <span className="cm-tag">{tag}</span>}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
     </article>
@@ -135,8 +150,9 @@ export default function Cups({ cups, onOpenRules }) {
       <h2 className="section-title">Champions e Europa League</h2>
       <p className="muted small intro">
         Mata-mata em jogo único. Os 5 primeiros da classificação ao fim do 1º turno disputam a Champions League e os 5
-        últimos, a Europa League. Os dois piores de cada grupo fazem a preliminar. Cada jogador escolhe 1 clube entre
-        os que já usa no campeonato e vai com ele o mata-mata todo.{" "}
+        últimos, a Europa League. Os dois piores de cada grupo fazem a preliminar, e os perdedores das semifinais
+        decidem o 3º lugar. Cada jogador escolhe 1 clube entre os que já usa no campeonato e vai com ele o mata-mata
+        todo.{" "}
         <button className="link" onClick={() => onOpenRules("mata-mata")}>Ver as regras do mata-mata</button>
       </p>
       {status && <p className="cup-status">{status}</p>}
